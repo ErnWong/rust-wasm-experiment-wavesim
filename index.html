@@ -70,13 +70,15 @@ WebAssembly
 
     function tick(ms)
     {
-      duration = Math.min((ms - prevMs) / 1000, 1/24);
+      duration = (ms - prevMs) / 1000;
+      log(`fps = ${(1 / duration).toFixed(2)}, @ 100 iterations per frame\n`);
+
+      duration = Math.min(duration, 1/24);
       prevMs = ms;
 
       mod.exports.step(solver, 4000*duration, 100);
       mod.exports.draw(solver, bufferPointer, width, height);
       context.putImageData(image, 0, 0);
-      log(`fps = ${(1 / duration).toFixed(2)}, @ 100 iterations per frame\n`);
       window.requestAnimationFrame(tick);
     }
 
