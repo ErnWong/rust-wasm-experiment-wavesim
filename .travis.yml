@@ -1,0 +1,18 @@
+language: rust
+
+rust:
+  nightly
+
+install:
+  - cargo install --git https://github.com/alexcrichton/wasm-gc
+
+script:
+  - rustup target add wasm32-unknown-unknown --toolchain nightly
+  - make
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  on:
+    branch: master
