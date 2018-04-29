@@ -43,7 +43,7 @@ WebAssembly
     const initBuffer = new Float64Array(mod.exports.memory.buffer, initPointer, size);
     for (let i = 0; i < size; i++)
     {
-      let x = i / size - 0.5;
+      let x = i / size - 0.4;
       initBuffer[i] = Math.exp(-100 * x * x);
     }
 
