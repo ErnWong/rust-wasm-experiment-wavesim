@@ -1,0 +1,11 @@
+[package]
+name = "rust-wasm-test-wavesim"
+version = "0.1.0"
+authors = ["Ernest Wong <sudo@ernestwong.nz>"]
+
+[dependencies]
+num-traits = "0.2"
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib"]

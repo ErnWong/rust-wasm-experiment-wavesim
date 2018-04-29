@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<style>
+html, body {
+  margin: 0;
+  font-family: Monospace;
+  overflow: hidden;
+  background-color: #FAEBD7;
+  color: #23BED8;
+  text-shadow: 1px 1px white;
+  font-weight: bold;
+  text-align: center;
+}
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+</style>
+  </head>
+  <body>
+    <div id="log"></div>
+    <canvas id="output" width="800" height="600"></canvas>
+    <script>
+function log(message)
+{
+  document.getElementById('log').textContent = message;
+}
+log('Loading WebAssembly');
+WebAssembly
+  .instantiateStreaming(fetch('rust.wasm'))
+  .then(results => {
+    const size = 1000;
+    const waveCoeff = 0.2
+
+    const mod = results.instance;
+    window.mod = mod;
+
+    log('Configuring Initial Conditions');
+    const initPointer = mod.exports.alloc(size * 8);
+    const initBuffer = new Float64Array(mod.exports.memory.buffer, initPointer, size);
+    for (let i = 0; i < size; i++)
+    {
+      let x = i / size - 0.5;
+      initBuffer[i] = Math.exp(-100 * x * x);
+    }
+
+    log('Initializing');
+    const solver = mod.exports.new_setup(size, initPointer, waveCoeff);
+
+    const posPointer = mod.exports.get_pos(solver);
+    const posData = new Float64Array(mod.exports.memory.buffer, posPointer, size);
+    window.posData = posData;
+
+    log('Setting Up Graphics');
+    const context = document.getElementById('output').getContext('2d');
+
+    context.canvas.width = window.innerWidth;
+    context.canvas.height = window.innerHeight;
+    const width = context.canvas.width;
+    const height = context.canvas.height;
+    const bufferBytes = width * height * 4;
+    const bufferPointer = mod.exports.alloc(bufferBytes);
+    const buffer = new Uint8ClampedArray(mod.exports.memory.buffer, bufferPointer, bufferBytes);
+    const image = new ImageData(buffer, width, height);
+
+    log('Starting any moment now...');
+
+    function tick(ms)
+    {
+      duration = Math.min((ms - prevMs) / 1000, 1/24);
+      prevMs = ms;
+
+      mod.exports.step(solver, 4000*duration, 100);
+      mod.exports.draw(solver, bufferPointer, width, height);
+      context.putImageData(image, 0, 0);
+      log(`fps = ${(1 / duration).toFixed(2)}, @ 100 iterations per frame\n`);
+      window.requestAnimationFrame(tick);
+    }
+
+    let prevMs = performance.now();
+    tick(prevMs);
+});
+    </script>
+  </body>
+</html>
