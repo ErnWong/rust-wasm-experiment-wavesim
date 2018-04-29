@@ -9,8 +9,12 @@ install:
 script:
   - rustup target add wasm32-unknown-unknown --toolchain nightly
   - make
+  - mkdir out
+  - cp index.html out
+  - cp rust.wasm out
 
 deploy:
+  local-dir: out
   provider: pages
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
